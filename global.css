@@ -1,0 +1,32 @@
+/* テーマカラーのリンク */
+.primary-link {
+  color: var(--mantine-color-primary-7);
+  text-decoration: none;
+  @mixin hover {
+    text-decoration: underline;
+  }
+}
+
+/* テーブルの文字列が長い場合に文字を省略する */
+.table-td-text-limit {
+  max-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* # プリント設定 */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  /* .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+  } */
+}

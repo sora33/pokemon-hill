@@ -1,0 +1,48 @@
+name: Prisma Migrate
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - prisma/**
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/cache@v3
+        id: node_modules_cache_id
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+
+      - name: インストール
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
+        run: yarn install
+
+      - run: rm -rf node_modules/.prisma
+
+      - name: マイグレーションのデプロイ
+        run: npx prisma migrate deploy
+
+      - name: Prisma Clientの生成
+        run: npx prisma generate
+
+      - name: シード
+        run: yarn prisma:seed

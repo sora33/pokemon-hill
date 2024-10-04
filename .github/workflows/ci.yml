@@ -1,0 +1,106 @@
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  node-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/cache@v3
+        id: node_modules_cache_id
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install dependencies
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
+        run: yarn install
+      - name: 🔦 Run linter & formatter
+        run: yarn biome:check
+      - name: 🔦 Run type-check
+        run: yarn type-check
+
+  prisma-migrate-diff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+    outputs:
+      dryrun_result: ${{ steps.dryrun.outputs.result }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/cache@v3
+        id: node_modules_cache_id
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+      - name: Install dependencies
+        if: ${{ steps.node_modules_cache_id.outputs.cache-hit != 'true' }}
+        run: yarn install
+      - name: generate prisma
+        run: npx prisma generate
+      - id: dryrun
+        run: |
+          result=$(npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma --exit-code || true)
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        shell: bash
+
+  summary:
+    needs: [node-check, prisma-migrate-diff]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const jobs = ${{ toJson(needs) }};
+            let summary = '## 📌 Actionsの結果 \n\n';
+
+            summary += '### CIの結果 \n\n';
+
+            for (const [job, result] of Object.entries(jobs)) {
+              const status = result.result;
+              const emoji = status === 'success' ? '🙆‍♂️' : '🙅‍♀️';
+              summary += `- **${job}**: ${emoji} (${status})\n`;
+            }
+
+            summary += '\n### prisma migrate diff の結果 \n\n';
+            const dryRunResult = ${{ toJson(needs.prisma-migrate-diff.outputs.dryrun_result) }};
+
+            if (dryRunResult.trim()) {
+              summary += '```\n' + dryRunResult + '\n```\n';
+            } else {
+              summary += '変更がないため、DBは更新されません。\n';
+            }
+
+            summary += '\n### まとめ\n';
+            const overallStatus = Object.values(jobs).every(job => job.result === 'success');
+            summary += overallStatus
+              ? '全てのチェックが成功しました！素晴らしい仕事です！🥳 \n'
+              : '一部のチェックが失敗しました。上記の詳細を確認してください😅👻 \n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
