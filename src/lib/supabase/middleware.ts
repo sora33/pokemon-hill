@@ -49,7 +49,11 @@ export const updateSession = async (request: NextRequest) => {
 		// }
 
 		// 保護されたルートとユーザー認証
-		if (!request.nextUrl.pathname.startsWith("/auth") && user.error) {
+		if (
+			!request.nextUrl.pathname.startsWith("/auth") &&
+			!request.nextUrl.pathname.startsWith("/c") &&
+			user.error
+		) {
 			return NextResponse.redirect(new URL("/auth/sign-in", request.url));
 		}
 
