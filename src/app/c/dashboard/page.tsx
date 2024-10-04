@@ -20,9 +20,8 @@ import {
 	LinearScale,
 	Tooltip,
 } from "chart.js";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Bar, Pie } from "react-chartjs-2";
-
 
 ChartJS.register(
 	ArcElement,
@@ -242,22 +241,82 @@ function TypeDistributionCharts({
 // type effectiveness data
 const typeEffectiveness: { [key: string]: { [key: string]: number } } = {
 	normal: { fighting: 2, ghost: 0 },
-	fire: { water: 2, ground: 2, rock: 2, fire: 0.5, grass: 0.5, ice: 0.5, bug: 0.5, steel: 0.5, fairy: 0.5 },
+	fire: {
+		water: 2,
+		ground: 2,
+		rock: 2,
+		fire: 0.5,
+		grass: 0.5,
+		ice: 0.5,
+		bug: 0.5,
+		steel: 0.5,
+		fairy: 0.5,
+	},
 	water: { electric: 2, grass: 2, fire: 0.5, water: 0.5, ice: 0.5, steel: 0.5 },
 	electric: { ground: 2, electric: 0.5, flying: 0.5, steel: 0.5 },
-	grass: { fire: 2, ice: 2, poison: 2, flying: 2, bug: 2, water: 0.5, electric: 0.5, grass: 0.5, ground: 0.5 },
+	grass: {
+		fire: 2,
+		ice: 2,
+		poison: 2,
+		flying: 2,
+		bug: 2,
+		water: 0.5,
+		electric: 0.5,
+		grass: 0.5,
+		ground: 0.5,
+	},
 	ice: { fire: 2, fighting: 2, rock: 2, steel: 2, ice: 0.5 },
 	fighting: { flying: 2, psychic: 2, fairy: 2, bug: 0.5, rock: 0.5, dark: 0.5 },
 	poison: { ground: 2, psychic: 2, poison: 0.5, grass: 0.5, fairy: 0.5 },
 	ground: { water: 2, grass: 2, ice: 2, poison: 0.5, rock: 0.5 },
-	flying: { electric: 2, ice: 2, rock: 2, grass: 0.5, fighting: 0.5, bug: 0.5, ground: 0 },
+	flying: {
+		electric: 2,
+		ice: 2,
+		rock: 2,
+		grass: 0.5,
+		fighting: 0.5,
+		bug: 0.5,
+		ground: 0,
+	},
 	psychic: { bug: 2, ghost: 2, dark: 2, fighting: 0.5, psychic: 0.5 },
 	bug: { fire: 2, flying: 2, rock: 2, grass: 0.5, fighting: 0.5, ground: 0.5 },
-	rock: { water: 2, grass: 2, fighting: 2, steel: 2, normal: 0.5, fire: 0.5, poison: 0.5, flying: 0.5 },
+	rock: {
+		water: 2,
+		grass: 2,
+		fighting: 2,
+		steel: 2,
+		normal: 0.5,
+		fire: 0.5,
+		poison: 0.5,
+		flying: 0.5,
+	},
 	ghost: { ghost: 2, dark: 2, normal: 0, fighting: 0, poison: 0.5, bug: 0.5 },
-	dragon: { ice: 2, dragon: 2, fairy: 2, fire: 0.5, water: 0.5, electric: 0.5, grass: 0.5 },
+	dragon: {
+		ice: 2,
+		dragon: 2,
+		fairy: 2,
+		fire: 0.5,
+		water: 0.5,
+		electric: 0.5,
+		grass: 0.5,
+	},
 	dark: { fighting: 2, bug: 2, fairy: 2, ghost: 0.5, dark: 0.5, psychic: 0 },
-	steel: { fire: 2, fighting: 2, ground: 2, normal: 0.5, grass: 0.5, ice: 0.5, flying: 0.5, psychic: 0.5, bug: 0.5, rock: 0.5, dragon: 0.5, steel: 0.5, fairy: 0.5, poison: 0 },
+	steel: {
+		fire: 2,
+		fighting: 2,
+		ground: 2,
+		normal: 0.5,
+		grass: 0.5,
+		ice: 0.5,
+		flying: 0.5,
+		psychic: 0.5,
+		bug: 0.5,
+		rock: 0.5,
+		dragon: 0.5,
+		steel: 0.5,
+		fairy: 0.5,
+		poison: 0,
+	},
 	fairy: { poison: 2, steel: 2, fighting: 0.5, bug: 0.5, dark: 0.5, dragon: 0 },
 };
 
@@ -290,25 +349,27 @@ function TypeAnalysis({ dominantType }: { dominantType: string }) {
 				<strong>{dominantType}タイプ</strong>の特徴:
 			</Text>
 			<Text>
-				弱点: {weaknesses.length > 0 ? weaknesses.join(', ') : 'なし'}
+				弱点: {weaknesses.length > 0 ? weaknesses.join(", ") : "なし"}
 			</Text>
 			<Text>
-				耐性: {resistances.length > 0 ? resistances.join(', ') : 'なし'}
+				耐性: {resistances.length > 0 ? resistances.join(", ") : "なし"}
 			</Text>
-			{immunities.length > 0 && (
-				<Text>
-					無効: {immunities.join(', ')}
-				</Text>
-			)}
+			{immunities.length > 0 && <Text>無効: {immunities.join(", ")}</Text>}
 			<Text mt="md">
-				{weaknesses.length > 0 && `${weaknesses.join('、')}タイプの攻撃に注意が必要です。`}
-				{resistances.length > 0 && `${resistances.join('、')}タイプの攻撃に強いです。`}
-				{immunities.length > 0 && `${immunities.join('、')}タイプの攻撃を無効化できます。`}
+				{weaknesses.length > 0 &&
+					`${weaknesses.join("、")}タイプの攻撃に注意が必要です。`}
+				{resistances.length > 0 &&
+					`${resistances.join("、")}タイプの攻撃に強いです。`}
+				{immunities.length > 0 &&
+					`${immunities.join("、")}タイプの攻撃を無効化できます。`}
 			</Text>
 			<Text mt="md">
 				チーム構成のアドバイス:
-				{weaknesses.length > 0 ? ` ${weaknesses.join('、')}タイプに強いポケモンを加えると良いでしょう。` : ' 特に弱点がないため、バランスの取れたチーム構成が可能です。'}
-				{resistances.length > 0 && ` ${resistances.join('、')}タイプの攻撃を活かせるポケモンと相性が良いです。`}
+				{weaknesses.length > 0
+					? ` ${weaknesses.join("、")}タイプに強いポケモンを加えると良いでしょう。`
+					: " 特に弱点がないため、バランスの取れたチーム構成が可能です。"}
+				{resistances.length > 0 &&
+					` ${resistances.join("、")}タイプの攻撃を活かせるポケモンと相性が良いです。`}
 			</Text>
 		</Box>
 	);
@@ -461,10 +522,8 @@ export default function Page() {
 				<Text>読み込み中...</Text>
 			) : step < 5 ? (
 				<>
-				<Text>
-				あなたが好きなポケモンを選択してください。
-				</Text>
-				{renderPokemonOptions()}
+					<Text>あなたが好きなポケモンを選択してください。</Text>
+					{renderPokemonOptions()}
 				</>
 			) : (
 				renderAnalysisResult()
